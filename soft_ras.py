@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import os
 from renderers.soft_ras import SoftRas
-from resources.resource import spot_obj, tex_image, cube_obj
+from resources.resource import spot_obj, tex_image, cube_obj, fox_gltf
 from utils.util import wrap_float_tensor
 from renderers.camera import PerspectiveCamera
 from renderers.light import PointLight
@@ -26,7 +26,7 @@ def update_frame(frame: int, img):
         rotation=rotate_to_quaternion(Vector3(0.0, 1.0, 1.0), angle)
         * rotate_to_quaternion(Vector3(1.0, 0.0, 0.0), angle),
         position=Vector3(0.0, 0.0, 0.0),
-        scaling=Vector3(0.7, 0.7, 0.7),
+        scaling=Vector3(1.5, 1.5, 1.5),
     )
 
     camera = PerspectiveCamera(
@@ -66,7 +66,7 @@ def update_frame(frame: int, img):
 
     output: torch.Tensor = renderer.apply(
         camera,
-        cube_obj,
+        fox_gltf,
         transform,
         point_light,
         material,
@@ -74,7 +74,7 @@ def update_frame(frame: int, img):
         params,
     )  # type: ignore
 
-    print(output.shape)
+    # print(output.shape)
     # print(output[512, 512])
     # print(output.max())
     # plt.rcParams["figure.figsize"] = (camera.width, camera.height)
@@ -91,7 +91,7 @@ def update_frame(frame: int, img):
 def main():
     fig, ax = plt.subplots()
     initial_image = np.zeros((HEIGHT, WIDTH, 3))
-    img = ax.imshow(initial_image, animated=True)
+    img = ax.imshow(initial_image, animated=True, origin="lower")
     ani = animation.FuncAnimation(
         fig, update_frame, fargs=(img,), frames=32, interval=100, blit=True
     )

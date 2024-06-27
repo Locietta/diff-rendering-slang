@@ -145,7 +145,7 @@ class Mesh(object):
         Create a Mesh object from a .gltf file
         """
 
-        vertices, normals, tex_coords, faces = load_gltf(filename_gltf)
+        vertices, normals, tex_coords, faces = load_gltf(filename_gltf, normalization)
         if not load_texture:
             textures = None
 
