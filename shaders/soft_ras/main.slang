@@ -49,6 +49,7 @@ void Main(
     CookTorranceMaterial material,
     Texture2D texture0,
     DiffTensorView<float> output,
+    DiffTensorView<float> bg_color,
     RenderParams params) // control soft rasterization
 {
     uint3 global_idx = cudaBlockIdx() * cudaBlockDim() + cudaThreadIdx();
@@ -62,7 +63,8 @@ void Main(
 
     float2 pixel_coord = global_idx.xy + 0.5;
 
-    const float3 bg_color = params.bg_color;
+    // const float3 bg_color = params.bg_color;
+    let bg_color : float3 = float3(bg_color[0], bg_color[1], bg_color[2]);
 
     const float epsilon = params.epsilon;
     const float gamma = params.gamma;
@@ -71,13 +73,13 @@ void Main(
     let model = transform.getMatrix();
 
     float bg_weight = exp(0.0 / gamma);
-    if_pixel(0, 0)
-    {
-        pdebug(bg_weight);
-        pdebug4x4(model);
-        pdebug4x4(vp.view);
-        pdebug4x4(vp.proj);
-    }
+    // if_pixel(0, 0)
+    // {
+    //     pdebug(bg_weight);
+    //     pdebug4x4(model);
+    //     pdebug4x4(vp.view);
+    //     pdebug4x4(vp.proj);
+    // }
 
     float softmax_sum = bg_weight;
     float softmax_max = params.epsilon;
@@ -87,10 +89,10 @@ void Main(
     let num_batch = mesh.faces.size(0);
     let num_face = mesh.faces.size(1);
 
-    [MaxIters(3)]
+    [MaxIters(2)]
     for (uint bs = 0; bs < num_batch; bs++) // for each batch
     {
-        [MaxIters(600)]                                    // TODO: remove this by using separate kernel
+        [MaxIters(30)]                                    // TODO: remove this by using separate kernel
         for (uint i_face = 0; i_face < num_face; i_face++) // for each face
         {
             int3 vertex_indices = reinterpret<int3>(loadFloat3FromTensor(mesh.faces, int2(bs, i_face)));
@@ -223,7 +225,8 @@ void Main(
     color /= softmax_sum;
 
     /// Gamma correction
-    if (params.gamma_correction) {
+    if (params.gamma_correction)
+    {
         color = color / (color + 1.0);
         color = pow(color, 1.0 / 2.2);
     }
